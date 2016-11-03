@@ -21,7 +21,7 @@ import java.util.List;
 
 
 public class Main {
-    static final int NUMGENS = 3;
+    static final int NUMGENS = 6;
     static int iAncestorCount = 0;
 
     public static final String GEDCOMX_XML_MEDIA_TYPE = "application/x-gedcomx-v1+xml";
@@ -47,9 +47,9 @@ public class Main {
     }
 
 
-//    private static FamilySearchPlatform readGedcomx(String url, String sessionId, String mediaType) {
-    private static Gedcomx readGedcomx(String url, String sessionId, String mediaType) {
-        WebResource.Builder builder = client.resource(url).getRequestBuilder().accept(mediaType);
+    private static FamilySearchPlatform readGedcomx(String url, String sessionId) {
+//    private static Gedcomx readGedcomx(String url, String sessionId, String mediaType) {
+        WebResource.Builder builder = client.resource(url).getRequestBuilder().accept(FS_PLATFORM_V1_XML_MEDIA_TYPE);
         if (sessionId != null) {
             builder = builder.header("Authorization", "Bearer " + sessionId);
             builder = builder.header("From", "Jerry Chadwick");
@@ -65,7 +65,7 @@ public class Main {
     private  static void getPersonAndParents(String treePersonURL, int iLevel, String sessionId) {
         iAncestorCount++;
         // Read person
-        FamilySearchPlatform treePerson = (FamilySearchPlatform) readGedcomx(treePersonURL, sessionId, FS_PLATFORM_V1_XML_MEDIA_TYPE);
+        FamilySearchPlatform treePerson = (FamilySearchPlatform) readGedcomx(treePersonURL, sessionId);
         String parentLabel;
         switch (iLevel) {
             case 1: parentLabel = "Me"; break;
@@ -86,31 +86,39 @@ public class Main {
                 for (SourceReference sourceRef : sourcesRefList) {
                     URI sourceURI = sourceRef.getDescriptionRef();
                     System.out.println(sourceURI.toString());
-                    Gedcomx recordPersona = readGedcomx(sourceURI.toString(), sessionId, GEDCOMX_XML_MEDIA_TYPE);
+                    FamilySearchPlatform recordPersona = readGedcomx(sourceURI.toString(), sessionId);
                     List<SourceDescription> sourceDescList = recordPersona.getSourceDescriptions();
                     URI sourceDescURI = sourceDescList.get(0).getAbout();
-                    Gedcomx recordData = readGedcomx(sourceDescURI.toString(), sessionId, GEDCOMX_XML_MEDIA_TYPE);
+                    if (sourceDescURI != null) {
+                        FamilySearchPlatform recordData = readGedcomx(sourceDescURI.toString(), sessionId);
+                        if (recordData != null) {
+                            if (recordData.getPersons() != null) {
+                                for (Person persona : recordData.getPersons()) {
+                                    if (persona != null) {
+                                        System.out.println("Persona name: " + persona.getName().toString());
+                                        URI factType;
+                                        Date factDate;
+                                        PlaceReference factPlace;
+                                        if (persona.getFacts() != null) {
+                                            for (Fact fact : persona.getFacts()) {
+                                                if (fact != null) {
+                                                    System.out.println("Fact info:");
 
-                    for ( Person persona : recordData.getPersons()) {
-                        if (persona != null) {
-                            System.out.println("Persona name: " + persona.getName().toString());
-                            URI factType;
-                            Date factDate;
-                            PlaceReference factPlace;
-                            for (Fact fact : persona.getFacts()) {
-                                if (fact != null) {
-                                    System.out.println("Fact info:");
+                                                    factType = fact.getType();
+                                                    if (factType != null)
+                                                        System.out.println("Persona Fact Type:   " + factType);
 
-                                    factType = fact.getType();
-                                    if (factType != null) System.out.println("Persona Fact Type:   " + factType);
+                                                    factDate = fact.getDate();
+                                                    if (factDate != null)
+                                                        System.out.println("Persona Fact Date:   " + factDate.getOriginal());
 
-                                    factDate = fact.getDate();
-                                    if (factDate != null)
-                                        System.out.println("Persona Fact Date:   " + factDate.getOriginal());
-
-                                    factPlace = fact.getPlace();
-                                    if (factPlace != null)
-                                        System.out.println("Persona Fact Place:   " + factPlace.getOriginal());
+                                                    factPlace = fact.getPlace();
+                                                    if (factPlace != null)
+                                                        System.out.println("Persona Fact Place:   " + factPlace.getOriginal());
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -128,7 +136,7 @@ public class Main {
                     // compare the ID of the treePerson with Person2
                     if (relationship.getPerson2().getResourceId().equals(personID)) {
                         // treePerson is the child; i.e. this is a parent to treePerson
-                        FamilySearchPlatform parentPerson = (FamilySearchPlatform) readGedcomx(relationship.getPerson1().getResource().toString(), sessionId, FS_PLATFORM_V1_XML_MEDIA_TYPE);
+                        FamilySearchPlatform parentPerson = (FamilySearchPlatform) readGedcomx(relationship.getPerson1().getResource().toString(), sessionId);
                         if (iLevel < NUMGENS) {
                             getPersonAndParents(FS_ARK_URL_BASE + relationship.getPerson1().getResourceId().toString() + "?sourceDescriptions", iLevel+1, sessionId);
                         }
