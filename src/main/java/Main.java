@@ -90,6 +90,7 @@ public class Main {
                     List<SourceDescription> sourceDescList = recordPersona.getSourceDescriptions();
                     URI sourceDescURI = sourceDescList.get(0).getAbout();
                     Gedcomx recordData = readGedcomx(sourceDescURI.toString(), sessionId, GEDCOMX_XML_MEDIA_TYPE);
+
                     for ( Person persona : recordData.getPersons()) {
                         if (persona != null) {
                             System.out.println("Persona name: " + persona.getName().toString());
