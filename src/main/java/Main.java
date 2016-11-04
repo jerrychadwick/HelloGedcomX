@@ -38,13 +38,6 @@ public class Main {
         getPersonAndParents(FS_ARK_URL_BASE + "KWCB-QWK", 1, sessionId);
         System.out.println("Total count = " + iAncestorCount);
 
-        // Columbus V Wilson in the 1910 U.S. Census
-        // FamilySearchPlatform recordPersona = readGedcomx("https://familysearch.org/ark:/61903/1:1:ML2C-17D", null);
-        // Columbus Valentine Wilson in Family Tree
-        // FamilySearchPlatform treePerson = readGedcomx("https://familysearch.org/ark:/61903/4:1:K6ZR-421", sessionId);
-
-        // printPersonSummary(recordPersona, "Record persona");
-        // printPersonSummary(treePerson, "Tree person");
     }
 
 
